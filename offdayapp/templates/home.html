@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Bravo Off Day Schedule</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { width: 100%; margin-top: 20px; border-collapse: collapse; }
+        th, td { padding: 10px; border: 1px solid #ccc; text-align: center; }
+        th { background-color: #f4f4f4; }
+        #scheduleTable { margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Team Bravo Weekly Off Days Schedule</h1>
+    <table class="table" id="scheduleTable">
+        <thead>
+            <tr>
+                <th>Team Member</th>
+                <th>Monday</th>
+                <th>Tuesday</th>
+                <th>Wednesday</th>
+                <th>Thursday</th>
+                <th>Friday</th>
+                <th>Saturday</th>
+                <th>Sunday</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in team_schedule %}
+                <tr>
+                    <td>{{ entry.member.name }}</td>
+                    {% for day in days_of_week %}
+                        <td>{% if day in entry.off_days %}Off{% else %}{% endif %}</td>
+                    {% endfor %}
+                    <td>
+                        <form method="POST" style="display:inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="member_id" value="{{ entry.member.id }}">
+                            <button type="submit" name="delete_member" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Form for selecting a team member and submitting an off day -->
+    <form method="POST">
+        {% csrf_token %}
+        <label for="team_member">Select Team Member:</label>
+        <select name="team_member" id="team_member" required class="form-control">
+            <option value="">Select a team member</option>
+            {% for member in team_members %}
+                <option value="{{ member.id }}">{{ member.name }}</option>
+            {% endfor %}
+        </select><br><br>
+
+        <label for="day">Select Off Day:</label>
+        <select name="day" required class="form-control">
+            <option value="">Select a day</option>
+            {% for day in days_of_week %}
+                <option value="{{ day }}">{{ day }}</option>
+            {% endfor %}
+        </select><br><br>
+
+        <button type="submit" name="submit_off_day" class="btn btn-success">Submit Off Day</button>
+    </form>
+
+    <!-- Form for adding a new team member -->
+    <form method="POST">
+        {% csrf_token %}
+        <label for="name">Team Member Name:</label>
+        <input type="text" id="name" name="name" required class="form-control"><br><br>
+        <button type="submit" name="add_member" class="btn btn-primary">Add Member</button>
+    </form>
+
+    <!-- Modal for displaying form errors -->
+    <div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="errorModalLabel">Error</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <ul id="errorList"></ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            {% if off_day_form.errors %}
+                $('#errorModal').modal('show');
+                $('#errorList').empty();
+                {% for field, errors in off_day_form.errors.items %}
+                    $('#errorList').append('<li>{{ field }}: {{ errors|join:", " }}</li>');
+                {% endfor %}
+            {% endif %}
+        });
+    </script>
+</body>
+</html>
